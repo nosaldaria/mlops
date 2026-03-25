@@ -8,7 +8,7 @@ mlflow:
   experiment_name: "Telco_Churn_HPO"
 
 hpo:
-  n_trials: 20
+  n_trials: 25
   sampler: "tpe"
   metric: "f1"
 
