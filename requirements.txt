@@ -1,7 +1,13 @@
 pandas
-numpy
 scikit-learn
+joblib
 matplotlib
-seaborn
 mlflow
-jupyter
+optuna
+hydra-core
+omegaconf
+dvc
+apache-airflow
+pytest
+flake8
+black
