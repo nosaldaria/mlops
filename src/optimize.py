@@ -4,9 +4,11 @@ import mlflow
 import hydra
 import joblib
 import os
+import json
+import matplotlib.pyplot as plt
 from omegaconf import DictConfig
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score, confusion_matrix, ConfusionMatrixDisplay
 
 
 def load_data(cfg):
@@ -58,11 +60,31 @@ def main(cfg: DictConfig):
         best_model = RandomForestClassifier(**study.best_params, random_state=cfg.seed)
         best_model.fit(X_train, y_train)
 
+        y_pred = best_model.predict(X_test)
+        final_f1 = f1_score(y_test, y_pred)
+        final_acc = accuracy_score(y_test, y_pred)
+
         os.makedirs("models", exist_ok=True)
-        joblib.dump(best_model, "models/best_model.pkl")
+        os.makedirs("reports", exist_ok=True)
+
+        joblib.dump(best_model, "models/model.pkl")
         mlflow.sklearn.log_model(best_model, "model")
 
-        print(f"Оптимізація завершена. Найкращий F1: {study.best_value:.4f}")
+        metrics = {
+            "f1": float(final_f1),
+            "accuracy": float(final_acc)
+        }
+        with open("reports/metrics.json", "w", encoding="utf-8") as f:
+            json.dump(metrics, f, ensure_ascii=False, indent=2)
+
+        cm = confusion_matrix(y_test, y_pred)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+        disp.plot()
+        plt.title("Confusion Matrix - Best Model")
+        plt.savefig("reports/confusion_matrix.png")
+        mlflow.log_artifact("reports/confusion_matrix.png")
+
+        print(f"Оптимізація завершена. Найкращий F1: {final_f1:.4f}")
 
 
 if __name__ == "__main__":

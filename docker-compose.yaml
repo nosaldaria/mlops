@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  airflow-webserver:
+    image: apache/airflow:2.7.0
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - .:/opt/airflow/mlops_project
+    ports:
+      - "8080:8080"
+    command: webserver

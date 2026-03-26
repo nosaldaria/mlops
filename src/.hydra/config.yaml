@@ -1,0 +1,21 @@
+seed: 42
+data:
+  train_path: data/prepared/train.csv
+  test_path: data/prepared/test.csv
+mlflow:
+  tracking_uri: file:./mlruns
+  experiment_name: Telco_Churn_HPO
+hpo:
+  n_trials: 20
+  sampler: tpe
+  metric: f1
+random_forest:
+  n_estimators:
+    low: 50
+    high: 200
+  max_depth:
+    low: 3
+    high: 20
+  min_samples_split:
+    low: 2
+    high: 10

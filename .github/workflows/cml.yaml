@@ -1,0 +1,45 @@
+name: Model-CI
+on: [push, pull_request]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  train-and-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Train model
+        run: |
+          dvc pull 
+          python src/train.py data/prepared models 
+
+      - name: Run tests
+        env:
+          F1_THRESHOLD: "0.50"
+        run: pytest tests/
+
+      - name: Create CML report
+        if: github.event_name == 'pull_request'
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## ML Experiment Report" > report.md 
+          echo "### Metrics" >> report.md
+          cat reports/metrics.json >> report.md 
+          
+          echo "### Visualization" >> report.md 
+          cml publish reports/confusion_matrix.png --md >> report.md 
+          
+         cml comment create report.md 
+          
